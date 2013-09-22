@@ -21,7 +21,6 @@ void p(char *fmt, ... ){
         va_start (args, fmt );
         vsnprintf(tmp, 128, fmt, args);
         va_end (args);
-        Serial.print(tmp);
 }
 
 void setup(){
@@ -34,10 +33,9 @@ void setup(){
    // The uart is the standard output device STDOUT.
    stdout = &uartout ;
 	
-   String move[] = {"foo","bar","bazinga","dobby"};
-   Serial.println(sizeof(move));
-   for (int i=0;i <sizeof(move)-1;i++){
-	   Serial.println(move[i]);
+   char* move[] = {"foo","bar","bazinga","dobby"};
+   for (int i=0;i <4;i++){
+	   printf("%s\n",move[i]);
    }
 }
 void loop(){
