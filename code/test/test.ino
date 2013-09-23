@@ -32,11 +32,10 @@ void setup(){
 
    // The uart is the standard output device STDOUT.
    stdout = &uartout ;
-	
-   char* move[] = {"foo","bar","bazinga","dobby"};
-   for (int i=0;i <4;i++){
-	   printf("%s\n",move[i]);
-   }
+   int zeroTrim = 0;
+   int controlTrim = 0;
+
+   calibrate();
 }
 void loop(){
 }

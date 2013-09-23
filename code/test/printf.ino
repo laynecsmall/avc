@@ -1,22 +1,3 @@
-void printfSetup(){
-#include <stdarg.h>
-// we need fundamental FILE definitions and printf declarations
-#include <stdio.h>
-
-// create a FILE structure to reference our UART output function
-
-static FILE uartout = {0} ;
-
-// create a output function
-// This works because Serial.write, although of
-// type virtual, already exists.
-   // fill in the UART file descriptor with pointer to writer.
-   fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
-
-   // The uart is the standard output device STDOUT.
-   stdout = &uartout ;
-}
-
 static int uart_putchar (char c, FILE *stream)
 {
     Serial.write(c) ;
@@ -29,7 +10,16 @@ void p(char *fmt, ... ){
         va_start (args, fmt );
         vsnprintf(tmp, 128, fmt, args);
         va_end (args);
-        Serial.print(tmp);
 }
 
+void printfSetup(){
+#include <stdarg.h>
+#include <stdio.h>
 
+	// we need fundamental FILE definitions and printf declarations
+
+	// create a FILE structure to reference our UART output function
+
+	static FILE uartout = {0} ;
+	fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
+}

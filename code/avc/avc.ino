@@ -1,8 +1,5 @@
 #include <stdarg.h>
 #include <stdio.h>
-
-
-
 //grabbed from http://playground.arduino.cc/Main/Printf
 //provides printf functionality
 static FILE uartout = {0} ;
@@ -28,9 +25,25 @@ void p(char *fmt, ... ){
 
 
 
+//define constants
+//	define modes
+const int TEST = 0;
+const int PROGRAMMED = 1;
+const int REMOTE = 2 ;
+const int LINE = 3;
+const int MAZE = 4;
+//	define movement commands
+const int STOP = 0;
+const int FOREWARD = 1;
+const int BACKWARD = 2;
+const int LEFT = 3;
+const int RIGHT = 4;
+const int TRIM = 5;
+const int RESET = 6;
 
 //motor trim value
-int trim = 0;
+int controlTrim = 0;
+int zeroTrim = 0;
 String moveBuffer[] = {"f255", "b255","l128","r128"};
 
 int pwm_a = 3;
@@ -65,14 +78,14 @@ void setMove(char dir, int mag){
   //is bool right type? TODO: check this out
   bool a_dir, b_dir;
 
-  if (trim > 0){
+  if (controlTrim > 0){
 	  //bias towards right
 	  mag_a = mag;
-	  mag_b = mag - trim;
+	  mag_b = mag - controlTrim;
   }
-  else if (trim < 0){
+  else if (controlTrim < 0){
 	  //bias towards left
-	  mag_a = mag + trim;
+	  mag_a = mag + controlTrim;
 	  mag_b = mag;
   }
   else{
@@ -81,30 +94,35 @@ void setMove(char dir, int mag){
   }
 
   switch(dir){
-	  case 1:
-		  //forward
+	  case FOREWARD:
 		  a_dir = HIGH;
 		  b_dir = HIGH;
 		  break;
-	  case 2:
+	  case BACKWARD:
 		  //backward
 		  a_dir = LOW;
 		  b_dir = LOW;
 		  break;
-	  case 3:
+	  case LEFT:
 		  //left
 		  a_dir = LOW;
 		  b_dir = HIGH;
 		  break;
-	  case 4:
+	  case RIGHT:
 		  //right
 		  a_dir = HIGH;
 		  b_dir = LOW;
 		  break;
-	  case 5:
-		  //stop
+	  case STOP:
+		  mag_a = 0;
+		  mag_b = 0;
+		  break;
+	case TRIM:
 		  //TODO
-		  1+1;
+		  break;
+	case RESET:
+		  controlTrim = zeroTrim;
+		  break;
   }
   /* analogWrite(pwm_a, mag_a);
    * analogWrite(pwm_b, mag_b);
