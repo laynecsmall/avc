@@ -40,6 +40,7 @@ const int LEFT = 3;
 const int RIGHT = 4;
 const int TRIM = 5;
 const int RESET = 6;
+const int CALIBRATE = 7;
 
 //motor trim value
 int controlTrim = 0;
@@ -65,11 +66,6 @@ void setup(){
   pinMode(dir_a, OUTPUT);
   pinMode(dir_b, OUTPUT);
   Serial.begin(9600);
-}
-
-void calibrateTrim(){
-  //binary search throuhg trim values till wheel pulses match
-  //TODO
 }
 
 void setMove(char dir, int mag){
@@ -118,10 +114,13 @@ void setMove(char dir, int mag){
 		  mag_b = 0;
 		  break;
 	case TRIM:
-		  //TODO
+		  controlTrim = controlTrim + mag;
 		  break;
 	case RESET:
 		  controlTrim = zeroTrim;
+		  break;
+	case CALIBRATE:
+		  calibrate(zeroTrim, controlTrim);
 		  break;
   }
   /* analogWrite(pwm_a, mag_a);
@@ -136,11 +135,14 @@ void setMove(char dir, int mag){
 void parseMove(String command,int commandOut[]){
   //interprets commands recieved by the xbee and sends them to setMove()
   /* Directions:
+   *
+   * Stop/err= 0
    * Forward = 1
    * Backward= 2 
    * Left    = 3
    * Right   = 4
-   * Stop/err= 5
+   * Trim    = 5
+   * Reset   = 6
    *
    * Maximum magnitude is 255 */
 	commandOut[0] = 5;
