@@ -35,7 +35,7 @@ void setup(){
    int zeroTrim = 0;
    int controlTrim = 0;
 
-   calibrate();
+   calibrate(zeroTrim,controlTrim);
 }
 void loop(){
 }
