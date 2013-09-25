@@ -9,24 +9,27 @@
 
 SoftwareSerial xBeeSerial(zb_rxPin, zb_txPin); // RX, TX
 
-void setup()
-{
-  Serial.begin(9600);
+void xbeeSetup(){
   xBeeSerial.begin(9600);
-  pinMode(13,OUTPUT);
+  }
+
+bool xbeeAvailible(){
+	if (xBeeSerial.available()){
+		return true;
+	}
+	else{
+		return false;
+	}
 }
 
-
-void loop()
-{
-  byte inByte;
+void readXbee(char frame[]){
+  int count = 0;
   while ( xBeeSerial.available() > 0)
   {
-    digitalWrite(13,HIGH);
-    inByte = xBeeSerial.read();
-    Serial.print("rcvd: ");
-    Serial.println(inByte,HEX);
+
+    frame[count] = xBeeSerial.read();
+    count = count+1;
   }
-  digitalWrite(13,LOW);
 }
+	
 

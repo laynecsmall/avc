@@ -19,7 +19,7 @@ int hex3 = 0;
 int hex4 = 0;
 
 
-void setup()
+void xbee_setup()
 {
   Serial.begin(9600);
   xBeeSerial.begin(9600);
@@ -31,7 +31,7 @@ void setup()
 }
 
 
-void loop()
+void xbee_loop()
 {
   byte inByte;
   button3=digitalRead(13);
