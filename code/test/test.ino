@@ -26,6 +26,10 @@ void p(char *fmt, ... ){
 void setup(){
   // Start the UART
    Serial.begin(9600) ;
+   pinMode(3,INPUT);
+   digitalWrite(3,HIGH);
+   pinMode(2,INPUT);
+   digitalWrite(2,HIGH);
 
    // fill in the UART file descriptor with pointer to writer.
    fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
@@ -35,7 +39,10 @@ void setup(){
    int zeroTrim = 0;
    int controlTrim = 0;
 
-   calibrate(zeroTrim,controlTrim);
+   //calibrate(zeroTrim,controlTrim);
 }
 void loop(){
+	int a = digitalRead(2);
+	int b = digitalRead(3);
+	Serial.println(a);
 }

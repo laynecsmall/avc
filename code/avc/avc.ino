@@ -45,7 +45,10 @@ const int CALIBRATE = 7;
 //motor trim value
 int controlTrim = 0;
 int zeroTrim = 0;
-String moveBuffer[] = {"f255", "b255","l128","r128"};
+//which mode are we in?
+int mode = 0;
+//sample move commands, should be overwritten by real ones in relevant modes.
+String moveBuffer[100];
 
 int pwm_a = 3;
 int pwm_b = 11;
@@ -66,6 +69,27 @@ void setup(){
   pinMode(dir_a, OUTPUT);
   pinMode(dir_b, OUTPUT);
   Serial.begin(9600);
+
+  //set interupts
+
+  //figure out what mode we're in/what we're doing
+  switch (mode){
+  	case REMOTE:
+		{
+		int frame[25];
+		xbeeSetup();
+		break;
+		}
+
+	case PROGRAMMED:
+		{
+		String moveBuffer[] = {"f255", "b255","l128","r128"};
+		break;
+		}
+	}
+
+
+
 }
 
 void setMove(char dir, int mag){
@@ -148,10 +172,14 @@ void parseMove(String command,int commandOut[]){
 	commandOut[0] = 5;
 
 	//find the move code
-	if      (command.substring(0,1) == "f") {commandOut[0] = 1;}
-	else if (command.substring(0,1) == "b") {commandOut[0] = 2;}
-	else if (command.substring(0,1) == "l") {commandOut[0] = 3;}
-	else if (command.substring(0,1) == "r") {commandOut[0] = 4;}
+	if      (command.substring(0,1) == "f") {commandOut[0] = FOREWARD;}
+	else if (command.substring(0,1) == "b") {commandOut[0] = BACKWARD;}
+	else if (command.substring(0,1) == "l") {commandOut[0] = LEFT;}
+	else if (command.substring(0,1) == "r") {commandOut[0] = RIGHT;}
+	else if (command.substring(0,1) == "s") {commandOut[0] = STOP;}
+	else if (command.substring(0,1) == "t") {commandOut[0] = TRIM;}
+	else if (command.substring(0,1) == "r") {commandOut[0] = RESET;}
+	else if (command.substring(0,1) == "c") {commandOut[0] = CALIBRATE;}
 	//shouldn't happen, but if all else fails set move as error
 	else 			    {commandOut[0] = 5;}
 
@@ -159,7 +187,6 @@ void parseMove(String command,int commandOut[]){
 	int len = command.length();
 	String mag;
 	mag = command.substring(1);
-	Serial.println(mag);
 	char mags[len+1];
 	mag.toCharArray(mags,len+1);
 	commandOut[1] = atoi(mags);
@@ -167,6 +194,24 @@ void parseMove(String command,int commandOut[]){
 
 
 void loop(){
+	switch(mode){
+		case TEST:
+			{
+			//test mode
+			break;
+			}
+
+		case REMOTE:
+			{
+			//read from the remote, then interpret the results/feed back to the moveBuffer
+			if (xbeeAvailible()){
+				//readXbee(frame);
+				//get the frame, parse it into the moveBuffer
+				}
+			break;
+			}
+		}
+	
 	for (int i = 0; i <= (sizeof(moveBuffer)/7)-1; i++){
 		int commands[2];
 		parseMove(moveBuffer[i],commands);
