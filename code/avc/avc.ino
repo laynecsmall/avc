@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <TimerOne.h>
 //grabbed from http://playground.arduino.cc/Main/Printf
 //provides printf functionality
 static FILE uartout = {0} ;
@@ -49,6 +50,10 @@ int zeroTrim = 0;
 int mode = PROGRAMMED;
 //sample move commands, should be overwritten by real ones in relevant modes.
 String moveBuffer[100];
+//wheel counts counting pulses of the opto interupts. Current is the one currently being incremented.
+int wheelCount[2] = {0,0};
+int currentWheelCount[2] = {0,0};
+int timer;
 
 int pwm_a = 10;
 int pwm_b = 11;
@@ -71,6 +76,9 @@ void setup(){
   Serial.begin(9600);
 
   //set interupts
+  Timer1.initialize(200000);         // initialize timer1, and set a 1/2 second period
+  Timer1.attachInterrupt(timeout);  // attaches callback() as a timer overflow interrupt
+  
 
   //figure out what mode we're in/what we're doing
   switch (mode){
@@ -92,6 +100,31 @@ void setup(){
 		break;
 		}
 	}
+}
+
+void timeout(){
+	//timeout callback from timed interrupt. should be called every .2 seconds 
+	
+	//push wheel counts to store, reset current counter
+	if (timer % 5 == 0){
+		//one second has passed, push totals to array
+		wheelCount[0] = currentWheelCount[0];
+		wheelCount[1] = currentWheelCount[1];
+		timer++;
+	}
+
+
+}
+
+void leftWheelHit(){
+	//callback from interupt - left wheel
+	currentWheelCount[0]++;
+	delay(2);
+}
+void rightWheelHit(){
+	//callback from interupt - right wheel
+	currentWheelCount[1]++;
+	delay(2);
 }
 
 void setMove(int dir, int mag){
@@ -213,18 +246,21 @@ void loop(){
 				}
 			break;
 			}
-		}
 	
-	for (int i = 0; i <= (sizeof(moveBuffer)/7)-1; i++){
-		int commands[2];
-		if (moveBuffer[i] != "\0"){
-			parseMove(moveBuffer[i],commands);
-			setMove(commands[0],commands[1]);
+		case PROGRAMMED:{
+					//iterate through the moveBuffer, loop when you find the null char
+			for (int i = 0; i <= (sizeof(moveBuffer)/7)-1; i++){
+				int commands[2];
+				if (moveBuffer[i] != "\0"){
+					parseMove(moveBuffer[i],commands);
+					setMove(commands[0],commands[1]);
 
-			delay(1500);
-		}
-		else{
-			break;
+					delay(1500);
+				}
+				else{
+					break;
+				}
+			}
 		}
 	}
 }
