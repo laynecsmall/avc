@@ -46,7 +46,7 @@ const int CALIBRATE = 7;
 int controlTrim = 0;
 int zeroTrim = 0;
 //which mode are we in?
-int mode = 1;
+int mode = PROGRAMMED;
 //sample move commands, should be overwritten by real ones in relevant modes.
 String moveBuffer[100];
 
@@ -83,17 +83,18 @@ void setup(){
 
 	case PROGRAMMED:
 		{
-		//String moveBuffer[] = {"f255", "b255","l128","r128"};
-		String moveBuffer[] = {"f255"};
+		String newBuff[] =  {"f255", "b255","l128","r128"};
+		for (int i = 0; i < sizeof(newBuff)/sizeof(newBuff[0])-1;i++){
+			moveBuffer[i] = newBuff[i];
+		}
+		moveBuffer[sizeof(newBuff)/sizeof(newBuff[0])] = "\0";
+		//String moveBuffer[] = {"f255"};
 		break;
 		}
 	}
-
-
-
 }
 
-void setMove(char dir, int mag){
+void setMove(int dir, int mag){
   //sets the motor values 
   int mag_a, mag_b;
   //is bool right type? TODO: check this out
@@ -152,6 +153,7 @@ void setMove(char dir, int mag){
    analogWrite(pwm_b, mag_b);
    digitalWrite(dir_a, a_dir);
    digitalWrite(dir_b, b_dir); 
+
 
   printf("A mag: %d, B mag: %d, Left : %i%i : Right \n", mag_a, mag_b, a_dir, b_dir);
 }
@@ -215,9 +217,14 @@ void loop(){
 	
 	for (int i = 0; i <= (sizeof(moveBuffer)/7)-1; i++){
 		int commands[2];
-		parseMove(moveBuffer[i],commands);
-		setMove(commands[0],commands[1]);
+		if (moveBuffer[i] != "\0"){
+			parseMove(moveBuffer[i],commands);
+			setMove(commands[0],commands[1]);
 
-		delay(1500);
+			delay(1500);
+		}
+		else{
+			break;
+		}
 	}
 }
