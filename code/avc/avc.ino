@@ -46,11 +46,11 @@ const int CALIBRATE = 7;
 int controlTrim = 0;
 int zeroTrim = 0;
 //which mode are we in?
-int mode = 0;
+int mode = 1;
 //sample move commands, should be overwritten by real ones in relevant modes.
 String moveBuffer[100];
 
-int pwm_a = 3;
+int pwm_a = 10;
 int pwm_b = 11;
 int dir_a = 12;
 int dir_b = 13;
@@ -83,7 +83,8 @@ void setup(){
 
 	case PROGRAMMED:
 		{
-		String moveBuffer[] = {"f255", "b255","l128","r128"};
+		//String moveBuffer[] = {"f255", "b255","l128","r128"};
+		String moveBuffer[] = {"f255"};
 		break;
 		}
 	}
@@ -147,10 +148,10 @@ void setMove(char dir, int mag){
 		  calibrate(zeroTrim, controlTrim);
 		  break;
   }
-  /* analogWrite(pwm_a, mag_a);
-   * analogWrite(pwm_b, mag_b);
-   * digitalWrite(dir_a, a_dir);
-   * digitalWrite(dir_b, b_dir); */
+   analogWrite(pwm_a, mag_a);
+   analogWrite(pwm_b, mag_b);
+   digitalWrite(dir_a, a_dir);
+   digitalWrite(dir_b, b_dir); 
 
   printf("A mag: %d, B mag: %d, Left : %i%i : Right \n", mag_a, mag_b, a_dir, b_dir);
 }
