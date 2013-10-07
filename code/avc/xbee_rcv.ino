@@ -24,8 +24,20 @@ bool xbeeAvailible(){
 
 void readXbee(char frame[]){
   int count = 0;
-  while ( xBeeSerial.available() > 0)
-  {
+  byte remoteDirection;;
+  byte remoteTrim;
+  
+  if ( xBeeSerial.available() > 0){
+   val = xBeeSerial.read();
+
+    if(val ==  0xAA){
+    remoteDirection = xBeeSerial.read();
+    //Serial.println(inByte,HEX);
+    remoteTrim = xBeeSerial.read();    
+    //Serial.println(inByte2, HEX);
+    }
+  }
+
 
     frame[count] = xBeeSerial.read();
     count = count+1;
