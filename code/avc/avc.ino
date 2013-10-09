@@ -239,11 +239,23 @@ void loop(){
 
 		case REMOTE:
 			{
-			//read from the remote, then interpret the results/feed back to the moveBuffer
-			if (xbeeAvailible()){
-				//readXbee(frame);
-				//get the frame, parse it into the moveBuffer
+			byte remoteDirection;
+  			byte remoteTrim;
+  
+				 if ( xBeeSerial.available() > 0){
+   				val = xBeeSerial.read();
+
+    					if(val ==  0xAA){
+    						remoteDirection = xBeeSerial.read();
+						 //Serial.println(inByte,HEX);
+						 remoteTrim = xBeeSerial.read();    
+						 //Serial.println(inByte2, HEX);
+					  }
+					  	setMove(int remoteDirection, 0)
+				{
 				}
+				 }
+			
 			break;
 			}
 	
