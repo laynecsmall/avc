@@ -251,7 +251,8 @@ void loop(){
 						 remoteTrim = xBeeSerial.read();    
 						 //Serial.println(inByte2, HEX);
 					  }
-					  	setMove(int remoteDirection, 0)
+					  int remote = remoteDirection;
+					  	setMove(remote, 0)
 				{
 				}
 				 }
