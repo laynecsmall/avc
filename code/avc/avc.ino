@@ -1,6 +1,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <TimerOne.h>
+#include <SoftwareSerial.h>
+#define zb_txPin 5
+#define zb_rxPin 4
+
+SoftwareSerial xBeeSerial(zb_rxPin, zb_txPin); 
 //grabbed from http://playground.arduino.cc/Main/Printf
 //provides printf functionality
 static FILE uartout = {0} ;
@@ -74,7 +79,8 @@ void setup(){
   pinMode(dir_a, OUTPUT);
   pinMode(dir_b, OUTPUT);
   Serial.begin(9600);
-
+  xBeeSerial.begin(9600);
+  
   //set interupts
   Timer1.initialize(200000);         // initialize timer1, and set a 1/2 second period
   Timer1.attachInterrupt(timeout);  // attaches callback() as a timer overflow interrupt
