@@ -52,7 +52,7 @@ const int CALIBRATE = 7;
 int controlTrim = 0;
 int zeroTrim = 0;
 //which mode are we in?
-int mode = PROGRAMMED;
+int mode = REMOTE; 
 //sample move commands, should be overwritten by real ones in relevant modes.
 String moveBuffer[100];
 //wheel counts counting pulses of the opto interupts. Current is the one currently being incremented.
@@ -139,12 +139,12 @@ void setMove(int dir, int mag){
   //is bool right type? TODO: check this out
   bool a_dir, b_dir;
 
-  if (controlTrim > 0){
+  if (controlTrim > 128){
 	  //bias towards right
 	  mag_a = mag;
 	  mag_b = mag - controlTrim;
   }
-  else if (controlTrim < 0){
+  else if (controlTrim < 128){
 	  //bias towards left
 	  mag_a = mag + controlTrim;
 	  mag_b = mag;
@@ -185,7 +185,7 @@ void setMove(int dir, int mag){
 		  controlTrim = zeroTrim;
 		  break;
 	case CALIBRATE:
-		  calibrate(zeroTrim, controlTrim);
+		  calibrate(zeroTrim, controlTrim, 0);
 		  break;
   }
    analogWrite(pwm_a, mag_a);
@@ -234,6 +234,18 @@ void parseMove(String command,int commandOut[]){
 	commandOut[1] = atoi(mags);
 }
 
+void xbeeSetup(){
+  xBeeSerial.begin(9600);
+  }
+
+bool xbeeAvailible(){
+	if (xBeeSerial.available()){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
 
 void loop(){
 	switch(mode){
@@ -243,24 +255,22 @@ void loop(){
 			break;
 			}
 
-		case REMOTE:
-			{
+		case REMOTE:{
 			byte remoteDirection;
   			byte remoteTrim;
-  
+                        byte val;
+                        
 				 if ( xBeeSerial.available() > 0){
    				val = xBeeSerial.read();
 
     					if(val ==  0xAA){
     						remoteDirection = xBeeSerial.read();
-						 //Serial.println(inByte,HEX);
+						 //Serial.println(remoteDirection,HEX);
 						 remoteTrim = xBeeSerial.read();    
-						 //Serial.println(inByte2, HEX);
+						 //Serial.println(remoteTrim, HEX);
 					  }
 					  int remote = remoteDirection;
-					  	setMove(remote, 0)
-				{
-				}
+					  	setMove(remoteDirection, 255);
 				 }
 			
 			break;
