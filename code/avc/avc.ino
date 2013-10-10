@@ -60,6 +60,12 @@ int wheelCount[2] = {0,0};
 int currentWheelCount[2] = {0,0};
 int timer;
 
+//xbee variables
+byte remoteDirection;
+byte remoteTrim;
+byte val;
+int remote;
+
 int pwm_a = 10;
 int pwm_b = 11;
 int dir_a = 12;
@@ -139,12 +145,12 @@ void setMove(int dir, int mag){
   //is bool right type? TODO: check this out
   bool a_dir, b_dir;
 
-  if (controlTrim > 0){
+  if (controlTrim > 128){
 	  //bias towards right
 	  mag_a = mag;
 	  mag_b = mag - controlTrim;
   }
-  else if (controlTrim < 0){
+  else if (controlTrim < 128){
 	  //bias towards left
 	  mag_a = mag + controlTrim;
 	  mag_b = mag;
@@ -256,24 +262,19 @@ void loop(){
 			}
 
 		case REMOTE:{
-			byte remoteDirection;
-  			byte remoteTrim;
-                        byte val;
-                        
-				 if ( xBeeSerial.available() > 0){
-   				val = xBeeSerial.read();
+                        //setMove(remoteDirection, 0);
+				 while ( xBeeSerial.available() > 0){        
+   				 val = xBeeSerial.read();
 
     					if(val ==  0xAA){
     						remoteDirection = xBeeSerial.read();
 						 //Serial.println(remoteDirection,HEX);
 						 remoteTrim = xBeeSerial.read();    
 						 //Serial.println(remoteTrim, HEX);
-					  }
-					  int remote = remoteDirection;
-					  	setMove(remoteDirection, 255);
-				 }
-			
-			break;
+                                                 int remote = remoteDirection;
+			                                }
+                                          }
+					  setMove(remoteDirection, 128);	
 			}
 	
 		case PROGRAMMED:{
