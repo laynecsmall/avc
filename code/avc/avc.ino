@@ -139,12 +139,12 @@ void setMove(int dir, int mag){
   //is bool right type? TODO: check this out
   bool a_dir, b_dir;
 
-  if (controlTrim > 128){
+  if (controlTrim > 0){
 	  //bias towards right
 	  mag_a = mag;
 	  mag_b = mag - controlTrim;
   }
-  else if (controlTrim < 128){
+  else if (controlTrim < 0){
 	  //bias towards left
 	  mag_a = mag + controlTrim;
 	  mag_b = mag;
