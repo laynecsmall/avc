@@ -20,10 +20,12 @@ int backward;
 int left;
 int right;
 int trim;
-int trigger = right + left + forward + backward + reset;
+int trigger = right + left + forward + backward;
 int lastTrigger = 0;
 int moveNumb;
-
+int resetTrig = reset;
+int lastResetTrig;
+int trimReset;
 
 void setup()
 {
@@ -47,7 +49,7 @@ void loop()
   forward=digitalRead(10);
   reset = digitalRead(9);
   trimin = analogRead(A0); 
-  trigger = right + left + forward + backward + reset;
+  trigger = right + left + forward + backward;
   trim = trimin / 4; //because reads all the way to 1024
   
   if (right == 1)
@@ -75,6 +77,7 @@ void loop()
     moveNumb = 0;
   } 
   
+  //move send stuff
    if (trigger!= lastTrigger){
      if (trigger == 1) {
       while ( xBeeSerial.available() > 0)
@@ -99,6 +102,26 @@ void loop()
     SendToZB0();
 }
 lastTrigger = trigger;
+   }
+   
+   //reset code
+      if (resetTrig!= lastResetTrig){
+     if (resetTrig == 1) {
+    if (trimReset == trim) {
+       trim = 0;
+    }   
+      while ( xBeeSerial.available() > 0)
+    {
+       inByte = -1;
+       inByte = xBeeSerial.read();
+       Serial.print("rcvd: ");
+       Serial.println(inByte,HEX);
+       break;
+    }
+    SendToZB0();
+    }
+lastResetTrig = resetTrig;
+trimReset = trim;
    }}
 //
 // function to send data through XBee
@@ -167,4 +190,3 @@ void SendToZB0(){
   Serial.println("finished transmitting");
 
 }
-
