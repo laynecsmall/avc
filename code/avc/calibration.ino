@@ -1,4 +1,4 @@
-void calibrate(int zt, int ct){
+void calibrate(int zt, int ct,int motors[]){
 	//runs the binary serach, attempts to find the best trim value to equalise pulses
 
 	//TODO: this may cause problems in production as arguments are passed by value, not address
@@ -9,11 +9,11 @@ void calibrate(int zt, int ct){
 	int min = -255;
 	int max = 255;
 	int moe = 2; //margin of error
-	int motors[] = {0,0};
 	//TODO this needs to be modified in production code so it reads real pulses
-	getPulses(motors,controlTrim,testTrim);
 
 	while (!((motors[0] >= motors[1] - moe) && (motors[0] <= motors[1] + moe))){
+		setMove(FOREWARD,255,controlTrim);
+		delay(1000);
 		int compare = compareMotors(motors);
 		if (compare == 1){
 			//motor 0 is too powerful, negitive trim
@@ -31,10 +31,10 @@ void calibrate(int zt, int ct){
 		}
 		controlTrim = testTrim;
 		printf("MotorA: %d - %d : MotorB, Trim: %d \n", motors[0],motors[1], controlTrim);
-		getPulses(motors,controlTrim, testTrim);
 	}
 	zeroTrim = testTrim;
-	printf("Calibration done");
+	printf("Calibration done, trim value: %d", zeroTrim);
+
 	return;
 	}
 

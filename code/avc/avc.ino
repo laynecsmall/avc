@@ -49,10 +49,10 @@ const int RESET = 6;
 const int CALIBRATE = 7;
 
 //motor trim value
-int controlTrim = 0;
-int zeroTrim = 0;
+int controlTrim = -0;
+int zeroTrim = -0;
 //which mode are we in?
-int mode = REMOTE; 
+int mode = TEST; 
 //sample move commands, should be overwritten by real ones in relevant modes.
 String moveBuffer[100];
 //wheel counts counting pulses of the opto interupts. Current is the one currently being incremented.
@@ -88,8 +88,10 @@ void setup(){
   xBeeSerial.begin(9600);
   
   //set interupts
-  Timer1.initialize(200000);         // initialize timer1, and set a 1/2 second period
+  Timer1.initialize(1000000);         // initialize timer1, and set a 1 second period
   Timer1.attachInterrupt(timeout);  // attaches callback() as a timer overflow interrupt
+  attachInterrupt(0,leftWheelHit,RISING);
+  attachInterrupt(1,rightWheelHit,RISING);
   
 
   //figure out what mode we're in/what we're doing
@@ -118,15 +120,15 @@ void timeout(){
 	//timeout callback from timed interrupt. should be called every .2 seconds 
 	
 	//push wheel counts to store, reset current counter
-	if (timer % 5 == 0){
-		//one second has passed, push totals to array
-		wheelCount[0] = currentWheelCount[0];
-		wheelCount[1] = currentWheelCount[1];
-		timer++;
+	wheelCount[0] = currentWheelCount[0];
+	wheelCount[1] = currentWheelCount[1];
+	currentWheelCount[0] = 0;
+	currentWheelCount[1] = 0;
+	printf("\nmotorA - %d : %d - motorB\n",wheelCount[0],wheelCount[1]);
 	}
 
 
-}
+
 
 void leftWheelHit(){
 	//callback from interupt - left wheel
@@ -139,20 +141,20 @@ void rightWheelHit(){
 	delay(2);
 }
 
-void setMove(int dir, int mag){
+void setMove(int dir, int mag,int moveTrim){
   //sets the motor values 
   int mag_a, mag_b;
   //is bool right type? TODO: check this out
   bool a_dir, b_dir;
 
-  if (controlTrim > 128){
+  if (moveTrim > 0){
 	  //bias towards right
 	  mag_a = mag;
-	  mag_b = mag - controlTrim;
+	  mag_b = mag - moveTrim;
   }
-  else if (controlTrim < 128){
+  else if (moveTrim < 0){
 	  //bias towards left
-	  mag_a = mag + controlTrim;
+	  mag_a = mag + moveTrim;
 	  mag_b = mag;
   }
   else{
@@ -191,7 +193,7 @@ void setMove(int dir, int mag){
 		  controlTrim = zeroTrim;
 		  break;
 	case CALIBRATE:
-		  calibrate(zeroTrim, controlTrim, 0);
+		  calibrate(zeroTrim, controlTrim, wheelCount);
 		  break;
   }
    analogWrite(pwm_a, mag_a);
@@ -258,11 +260,14 @@ void loop(){
 		case TEST:
 			{
 			//test mode
+			setMove(FOREWARD,255,controlTrim);
+			delay(10000);
+		//	calibrate(zeroTrim, controlTrim, wheelCount);
 			break;
 			}
 
 		case REMOTE:{
-                        //setMove(remoteDirection, 0);
+                        //setMove(remoteDirection, 0,controlTrim);
 				 while ( xBeeSerial.available() > 0){        
    				 val = xBeeSerial.read();
 
@@ -274,7 +279,7 @@ void loop(){
                                                  int remote = remoteDirection;
 			                                }
                                           }
-					  setMove(remoteDirection, 128);	
+					  setMove(remoteDirection, 128,controlTrim);	
 			}
 	
 		case PROGRAMMED:{
@@ -283,7 +288,7 @@ void loop(){
 				int commands[2];
 				if (moveBuffer[i] != "\0"){
 					parseMove(moveBuffer[i],commands);
-					setMove(commands[0],commands[1]);
+					setMove(commands[0],commands[1],controlTrim);
 
 					delay(1500);
 				}
