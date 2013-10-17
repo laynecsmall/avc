@@ -26,7 +26,7 @@ void setup(){
 	pinMode(dir_a, OUTPUT);
 	pinMode(dir_b, OUTPUT);
 	Serial.begin(9600);
-	setMove(FOREWARD,128,intrim);
+	setMove(FOREWARD,255,intrim);
 }
 
 void setMove(int dir, int mag, int trim){
@@ -77,6 +77,11 @@ void setMove(int dir, int mag, int trim){
 		     break;
 		}
 	}
+	if (a_mag > 255){a_mag=255;}
+	if (b_mag > 255){b_mag=255;}
+	if (a_mag < 0){a_mag=0;}
+	if (b_mag < 0){b_mag=0;}
+
 	digitalWrite(dir_a, a_dir);
 	digitalWrite(dir_b, b_dir); 
 	analogWrite(pwm_a, a_mag);
@@ -114,13 +119,7 @@ void loop(){
 	}
 
 	delay(2000);
-	setMove(FOREWARD,128,intrim);
-	delay(2000);
-	setMove(BACKWARD,128,intrim);
-	delay(2000);
-	setMove(LEFT,128,intrim);
-	delay(2000);
-	setMove(RIGHT,128,intrim);
+	setMove(BACKWARD,255,intrim);
 
 
 }

@@ -1,3 +1,6 @@
+#include <QTRSensors.h>
+#include <PID_v1.h>
+
 #define pwm_a 10
 #define pwm_b 11
 #define dir_a 12
@@ -8,7 +11,6 @@
 #define LEFT 3
 #define RIGHT 4
 #define STOP 0
-//check/cite code from: http://www.instructables.com/id/Arduino-based-line-follower-using-Pololu-QTR-8RC-l/?ALLSTEPS
 
 int incoming[4];
 int intrim=0;
@@ -19,16 +21,66 @@ int a_mag;
 int b_mag;
 int a_dir;
 int b_dir;
-void setup(){
 
+
+//PID variables
+double Setpoint, Input, Output;
+PID myPID(&Input, &Output, &Setpoint, 2,4,1, DIRECT);
+
+//QTR setup
+#define NUM_SENSORS   8     // number of sensors used
+#define TIMEOUT       2500  // waits for 2500 microseconds for sensor outputs to go low
+#define EMITTER_PIN   2     // emitter is controlled by digital pin 2
+
+// sensors 0 through 7 are connected to digital pins 3 through 10, respectively
+QTRSensorsRC qtrrc((unsigned char[]) {2, 3, 4, 5, 6, 7, 8, 9},
+  NUM_SENSORS, TIMEOUT, EMITTER_PIN); 
+unsigned int sensorValues[NUM_SENSORS];
+
+void setup(){
+	//line sensor setup
+	qtr_calibrate();
+
+	//motor setup
 	pinMode(pwm_a, OUTPUT);  //Set control pins to be outputs
 	pinMode(pwm_b, OUTPUT);
 	pinMode(dir_a, OUTPUT);
 	pinMode(dir_b, OUTPUT);
 	Serial.begin(9600);
-	setMove(FOREWARD,128,intrim);
-}
 
+	//pid setup
+	Setpoint=2000;
+	myPID.SetMode(AUTOMATIC);
+
+
+}
+void qtr_calibrate(){
+delay(500);
+  for (int i = 0; i < 400; i++)  // make the calibration take about 10 seconds
+  {
+    qtrrc.calibrate();       // reads all sensors 10 times at 2500 us per read (i.e. ~25 ms per call)
+  }
+  digitalWrite(13, LOW);     // turn off Arduino's LED to indicate we are through with calibration
+
+  // print the calibration minimum values measured when emitters were on
+  for (int i = 0; i < NUM_SENSORS; i++)
+  {
+    Serial.print(qtrrc.calibratedMinimumOn[i]);
+    Serial.print(' ');
+  }
+  Serial.println();
+  
+  // print the calibration maximum values measured when emitters were on
+  for (int i = 0; i < NUM_SENSORS; i++)
+  {
+    Serial.print(qtrrc.calibratedMaximumOn[i]);
+    Serial.print(' ');
+  }
+  Serial.println();
+  Serial.println();
+  delay(1000);
+	
+}
 void setMove(int dir, int mag, int trim){
 	//TODO trim
 
@@ -77,6 +129,12 @@ void setMove(int dir, int mag, int trim){
 		     break;
 		}
 	}
+
+	if (a_mag>255){a_mag=255;}
+	if (b_mag>255){b_mag=255;}
+	if (a_mag<0){a_mag=0;}
+	if (b_mag<0){b_mag=0;}
+
 	digitalWrite(dir_a, a_dir);
 	digitalWrite(dir_b, b_dir); 
 	analogWrite(pwm_a, a_mag);
@@ -98,20 +156,11 @@ void setMove(int dir, int mag, int trim){
 
 
 void loop(){
-	 while ( xBeeSerial.available() > 0){        
-	 val = xBeeSerial.read();
-
-		if(val ==  0xAA){
-			remoteDirection = xBeeSerial.read();
-			 Serial.println(remoteDirection,HEX);
-			 remoteTrim = xBeeSerial.read();    
-			 //Serial.println(remoteTrim, HEX);
-			 int remote = remoteDirection;
-				}
-		  }
-		if(remoteDirection<8){
-		  setMove(remoteDirection, 128,remoteTrim);	
-		}
+	myPID.Compute();
+	Input = qtrrc.readLine(sensorValues);
+	Serial.println(Input);
+	setMove(FOREWARD,128,Output);
+	delay(500);
 }
 
 

@@ -16,7 +16,7 @@
 
 SoftwareSerial xBeeSerial(zb_rxPin, zb_txPin);
 int incoming[4];
-int intrim=0;
+int intrim=-20;
 char sign='+';
 //a mag is right motor, stops at 45
 int a_mag;
@@ -28,6 +28,7 @@ int b_dir;
 byte remoteDirection;
 byte val;
 byte remoteTrim;
+byte remoteSpeed;
 int remote;
 void setup(){
 
@@ -123,12 +124,14 @@ void loop(){
 			 //Serial.println(remoteDirection,HEX);
 			 remoteTrim = xBeeSerial.read();    
 			 //Serial.println(remoteTrim, HEX);
+                          remoteSpeed = xBeeSerial.read();
+                          //Serial.println(remoteSpeed, HEX);
 			 int remote = remoteDirection;
 				}
 	  }
 
 	if(remoteDirection<8 ){
-	  setMove(remoteDirection, 128,0);	
+	  setMove(remoteDirection, remoteSpeed, remoteTrim);	
 	  remoteDirection = 88;
 	}
 
