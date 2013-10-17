@@ -25,7 +25,7 @@ int b_dir;
 
 //PID variables
 double Setpoint, Input, Output;
-PID myPID(&Input, &Output, &Setpoint, 2,4,1, DIRECT);
+PID myPID(&Input, &Output, &Setpoint, 0.05,0.025,0, DIRECT);
 
 //QTR setup
 #define NUM_SENSORS   8     // number of sensors used
@@ -49,7 +49,8 @@ void setup(){
 	Serial.begin(9600);
 
 	//pid setup
-	Setpoint=2000;
+	Setpoint=3500;
+	myPID.SetOutputLimits(-255.0,255.0);
 	myPID.SetMode(AUTOMATIC);
 
 
@@ -159,7 +160,9 @@ void loop(){
 	myPID.Compute();
 	Input = qtrrc.readLine(sensorValues);
 	Serial.println(Input);
-	setMove(FOREWARD,128,Output);
+	//setMove(FOREWARD,128,Output);
+	Serial.print("==Output:");
+	Serial.println(Output);
 	delay(500);
 }
 
