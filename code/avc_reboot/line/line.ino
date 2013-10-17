@@ -13,8 +13,6 @@
 #define STOP 0
 
 int incoming[4];
-int intrim=0;
-char sign='+';
 //a mag is right motor, stops at 45
 int a_mag;
 //b mag is left motor, stops at 55
@@ -22,17 +20,43 @@ int b_mag;
 int a_dir;
 int b_dir;
 
+//robot tunings
+int front_speed = 200; //how fast should go forwrd, before correction
+int front_delay = 200; //how long between calculating next move
+int back_speed = 255;
+int back_delay = 200;
+int bias = 68; //constant to correct for wheel difarential
+
+//robot pid tuning values
+float Kp = 0.013;
+float Ki = 0.05;
+float Kd = 0.0023;
+
+
+//best values found so far:
+//
+//int front_speed = 200; //how fast should go forwrd, before correction
+//int front_delay = 200; //how long between calculating next move
+//int back_speed = 255;
+//int back_delay = 200;
+//int bias = 68; //constant to correct for wheel difarential
+
+////robot pid tuning values
+//float Kp = 0.013;
+//float Ki = 0.05;
+//float Kd = 0.0023;
+
 
 //PID variables
 double Setpoint, Input, Output;
-PID myPID(&Input, &Output, &Setpoint, 0.05,0.025,0, DIRECT);
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 //QTR setup
 #define NUM_SENSORS   8     // number of sensors used
 #define TIMEOUT       2500  // waits for 2500 microseconds for sensor outputs to go low
 #define EMITTER_PIN   2     // emitter is controlled by digital pin 2
 
-// sensors 0 through 7 are connected to digital pins 3 through 10, respectively
+// sensors 0 through 7 are connected to digital pins 2 through 9, 10-13 are motor pins
 QTRSensorsRC qtrrc((unsigned char[]) {2, 3, 4, 5, 6, 7, 8, 9},
   NUM_SENSORS, TIMEOUT, EMITTER_PIN); 
 unsigned int sensorValues[NUM_SENSORS];
@@ -80,21 +104,18 @@ delay(500);
   Serial.println();
   Serial.println();
   delay(1000);
+  setMove(FOREWARD,128,0,-70);
 	
 }
-void setMove(int dir, int mag, int trim){
+void setMove(int dir, int mag, int trim, int bias){
 	//TODO trim
+	if (bias != 0){
+		trim = trim + bias;
+	}
 
 	if (trim !=0){
-		if (trim<0){
-			a_mag=mag-trim;
-			b_mag=mag+trim;
-			
-			}
-		if (trim>0){
 			a_mag=mag+trim;
 			b_mag=mag-trim;
-			}
 		}
 	else{
 		a_mag=mag;
@@ -157,13 +178,20 @@ void setMove(int dir, int mag, int trim){
 
 
 void loop(){
-	myPID.Compute();
+
 	Input = qtrrc.readLine(sensorValues);
-	Serial.println(Input);
-	//setMove(FOREWARD,128,Output);
-	Serial.print("==Output:");
-	Serial.println(Output);
-	delay(500);
+	if (Input == 0 || Input > 7000){
+		setMove(BACKWARD,back_speed,0,bias);
+		delay(back_delay);
+	}
+	else{
+		myPID.Compute();
+		Serial.println(Input);
+		setMove(FOREWARD,front_speed,Output,bias);
+		Serial.print("==Output:");
+		Serial.println(Output);
+		delay(front_delay);
+	}
 }
 
 
